@@ -1,4 +1,6 @@
-﻿using DevQuestions.Contracts.Questions;
+﻿using DevQuestions.Application.Extensions;
+using DevQuestions.Application.Questions.Fails.Exceptions;
+using DevQuestions.Contracts.Questions;
 using DevQuestions.Domain.Questions;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
@@ -7,22 +9,28 @@ namespace DevQuestions.Application.Questions;
 
 public class QuestionsService(
     IQuestionsRepository questionsRepository,
-    ILogger<QuestionsService> logger,
-    IValidator<CreateQuestionDto> validator) : IQuestionsService
+    IValidator<CreateQuestionDto> validator,
+    ILogger<QuestionsService> logger)
+    : IQuestionsService
 {
     public async Task<Guid> Create(CreateQuestionDto questionDto, CancellationToken cancellationToken)
     {
         var validationResult = await validator.ValidateAsync(questionDto, cancellationToken);
         if (!validationResult.IsValid)
         {
-            throw new ValidationException(validationResult.Errors);
+            throw new QuestionValidationException(validationResult.ToErrors());
         }
 
-        int openQuestionsCount =
-            await questionsRepository.GetOpenQuestionsCountAsync(questionDto.UserId, cancellationToken);
-        if (openQuestionsCount > 3)
+        var calculator = new QuestionCalculator();
+
+        calculator.Calculate();
+
+        int openUserQuestionsCount = await questionsRepository
+            .GetOpenUserQuestionsAsync(questionDto.UserId, cancellationToken);
+
+        if (openUserQuestionsCount > 3)
         {
-            throw new Exception("User cannot have more than 3 open questions.");
+            throw new ToManyQuestionsException();
         }
 
         var questionId = Guid.NewGuid();
@@ -37,8 +45,45 @@ public class QuestionsService(
 
         await questionsRepository.AddAsync(question, cancellationToken);
 
-        logger.LogInformation("Created question with id {QuestionId}", questionId);
+        logger.LogInformation("Question created with id {questionId}", questionId);
 
         return questionId;
+    }
+
+    // public async Task<IActionResult> Update(
+    //     [FromRoute] Guid questionId,
+    //     [FromBody] UpdateQuestionDto request,
+    //     CancellationToken cancellationToken)
+    // {
+    //
+    // }
+    //
+    // public async Task<IActionResult> Delete(Guid questionId, CancellationToken cancellationToken)
+    // {
+    //
+    // }
+    //
+    // public async Task<IActionResult> SelectSolution(
+    //     Guid questionId,
+    //     Guid answerId,
+    //     CancellationToken cancellationToken)
+    // {
+    //
+    // }
+    //
+    // public async Task<IActionResult> AddAnswer(
+    //     Guid questionId,
+    //     AddAnswerDto request,
+    //     CancellationToken cancellationToken)
+    // {
+    //
+    // }
+}
+
+public class QuestionCalculator
+{
+    public void Calculate()
+    {
+        throw new NotImplementedException();
     }
 }
