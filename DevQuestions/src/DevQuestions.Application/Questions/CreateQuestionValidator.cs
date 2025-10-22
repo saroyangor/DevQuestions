@@ -7,12 +7,14 @@ public class CreateQuestionValidator : AbstractValidator<CreateQuestionDto>
 {
     public CreateQuestionValidator()
     {
-        RuleFor(x => x.Title).NotEmpty().MaximumLength(500)
-            .WithMessage("Title is required and must not exceed 500 characters.");
+        RuleFor(x => x.Title)
+            .NotEmpty().WithMessage("Title can't be empty.")
+            .MaximumLength(500).WithMessage("Title is invalid.");
 
-        RuleFor(x => x.Text).NotEmpty().MaximumLength(5000)
-            .WithMessage("Text is required and must not exceed 5000 characters.");
+        RuleFor(x => x.Text)
+            .NotEmpty().WithMessage("Text can't be empty.")
+            .MaximumLength(5000).WithMessage("Text is invalid.");
 
-        RuleFor(x => x.UserId).NotEmpty().WithMessage("UserId is required.");
+        RuleFor(x => x.UserId).NotEmpty();
     }
 }
