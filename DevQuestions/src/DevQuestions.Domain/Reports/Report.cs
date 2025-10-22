@@ -7,7 +7,7 @@ public class Report
     public required Guid UserId { get; set; }
 
     public required Guid ReportedUserId { get; set; }
-    
+
     public required string Reason { get; set; }
 
     public Guid? ResolvedByUserId { get; set; }
