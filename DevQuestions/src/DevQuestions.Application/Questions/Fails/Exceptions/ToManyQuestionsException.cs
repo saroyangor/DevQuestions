@@ -2,4 +2,4 @@
 
 namespace DevQuestions.Application.Questions.Fails.Exceptions;
 
-public class ToManyQuestionsException() : BadRequestException([Errors.Questions.ToManyQuestions()]);
+public class ToManyQuestionsException() : BadRequestException([Errors.Questions.TooManyQuestions()]);

@@ -1,9 +1,11 @@
-﻿using DevQuestions.Application.Extensions;
-using DevQuestions.Application.Questions.Fails.Exceptions;
+﻿using CSharpFunctionalExtensions;
+using DevQuestions.Application.Extensions;
+using DevQuestions.Application.Questions.Fails;
 using DevQuestions.Contracts.Questions;
 using DevQuestions.Domain.Questions;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
+using Shared;
 
 namespace DevQuestions.Application.Questions;
 
@@ -13,24 +15,28 @@ public class QuestionsService(
     ILogger<QuestionsService> logger)
     : IQuestionsService
 {
-    public async Task<Guid> Create(CreateQuestionDto questionDto, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Failure>> Create(CreateQuestionDto questionDto, CancellationToken cancellationToken)
     {
         var validationResult = await validator.ValidateAsync(questionDto, cancellationToken);
         if (!validationResult.IsValid)
         {
-            throw new QuestionValidationException(validationResult.ToErrors());
+            return validationResult.ToErrors();
         }
 
         var calculator = new QuestionCalculator();
 
-        calculator.Calculate();
+        var calculateResult = calculator.Calculate();
+        if (calculateResult.IsFailure)
+        {
+            return calculateResult.Error;
+        }
 
         int openUserQuestionsCount = await questionsRepository
             .GetOpenUserQuestionsAsync(questionDto.UserId, cancellationToken);
 
         if (openUserQuestionsCount > 3)
         {
-            throw new ToManyQuestionsException();
+            return Errors.Questions.TooManyQuestions().ToFailure();
         }
 
         var questionId = Guid.NewGuid();
@@ -82,8 +88,8 @@ public class QuestionsService(
 
 public class QuestionCalculator
 {
-    public void Calculate()
+    public Result<int, Failure> Calculate()
     {
-        throw new NotImplementedException();
+        return Error.Failure(string.Empty, string.Empty).ToFailure();
     }
 }
