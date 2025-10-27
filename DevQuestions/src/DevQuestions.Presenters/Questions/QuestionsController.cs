@@ -1,5 +1,6 @@
 ﻿using DevQuestions.Application.Questions;
 using DevQuestions.Contracts.Questions;
+using DevQuestions.Presenters.ResponseExtensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevQuestions.Presenters.Questions;
@@ -13,8 +14,8 @@ public class QuestionsController(IQuestionsService questionsService) : Controlle
         [FromBody] CreateQuestionDto request,
         CancellationToken cancellationToken)
     {
-        var questionId = await questionsService.Create(request, cancellationToken);
-        return Ok(questionId);
+        var result = await questionsService.Create(request, cancellationToken);
+        return result.IsFailure ? result.Error.ToResponse() : Ok(result.Value);
     }
 
     [HttpGet]

@@ -6,13 +6,11 @@ namespace DevQuestions.Infrastructure.Postgres.Repositories;
 
 public class QuestionsEfCoreRepository(QuestionsDbContext dbContext) : IQuestionsRepository
 {
-    private readonly QuestionsDbContext _dbContext = dbContext;
-
     public async Task<Guid> AddAsync(Question question, CancellationToken cancellationToken)
     {
-        await _dbContext.Questions.AddAsync(question, cancellationToken);
+        await dbContext.Questions.AddAsync(question, cancellationToken);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return question.Id;
     }
@@ -23,7 +21,7 @@ public class QuestionsEfCoreRepository(QuestionsDbContext dbContext) : IQuestion
 
     public async Task<Question?> GetByIdAsync(Guid questionId, CancellationToken cancellationToken)
     {
-        var question = await _dbContext.Questions
+        var question = await dbContext.Questions
             .Include(q => q.Answers)
             .Include(q => q.Solution)
             .FirstOrDefaultAsync(q => q.Id == questionId, cancellationToken);
